@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-﻿read me file
+﻿me file
 =======
 # autorecord
 use command in cmd to write in file without using notepad
