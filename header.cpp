@@ -1,12 +1,20 @@
 ﻿#include "header.h"
 
-bool write_operate(std::ostream& os, const std::vector<std::string>& info)
+constexpr hash_t prime = 0x100000001B3ull;
+constexpr hash_t basis = 0xCBF29CE484222325ull;
+
+constexpr hash_t hash_compile_time(const char * str, hash_t last_value = basis)
+{
+	return *str ? hash_compile_time(str + 1, (*str ^ last_value) * prime) : last_value;
+}
+
+bool write_operate(std::ostream& os, const std::map<std::string, std::string> info)
 {
 	os << "\n";
 
-	for (std::vector<std::string>::const_iterator it = info.begin(); it != info.end(); it++)
+	for (const auto& item : info)
 	{
-		if (!(os << *it << "\n"))
+		if (!(os << item.first << ": " << item.second << "\n"))
 		{
 			return false;
 		}
@@ -29,26 +37,67 @@ bool read_operate(std::string platform_name, const std::vector<std::string>& inf
 	return false;
 }
 
-const std::vector<std::string> ap_operate(std::string& ap)
+const std::map<std::string, std::string> ap_operate(const std::vector<std::string>& ap)
 {
-	std::vector<std::string> vec;
+	std::map<std::string, std::string> m;
 
-	std::string::iterator temp = ap.begin();
+	std::string* temp = nullptr;
+	bool is_value = false;
 
-	for (std::string::iterator it = ap.begin(); it != ap.end(); it++)
+	for (const auto& item : ap)
 	{
-		if (*it == ',')
+		if (is_value)
 		{
-			vec.push_back(std::string(temp, it));
-			temp = it + 1;
+			*temp = item;
+			is_value = false;
+			continue;
 		}
-		if (it + 1 == ap.end())
+
+		if (item[0] == '-')
 		{
-			vec.push_back(std::string(temp, it + 1));
+			switch (hash_compile_time(item.c_str()))
+			{
+			case hash_compile_time("-pf"):
+				m["platform"] = "\0";
+				temp = &m["platform"];
+				break;
+			
+			case hash_compile_time("-phn"):
+				m["phonenumber"] = "\0";
+				temp = &m["phonenumber"];
+				break;
+
+			case hash_compile_time("-em"):
+				m["email"] = "\0";
+				temp = &m["email"];
+				break;
+
+			case hash_compile_time("-pw"):
+				m["password"] = "\0";
+				temp = &m["password"];
+				break;
+
+			case hash_compile_time("-n"):
+				m["name"] = "\0";
+				temp = &m["name"];
+				break;
+
+			case hash_compile_time("-g"):
+				m["gender"] = "\0";
+				temp = &m["gender"];
+				break;
+
+			case hash_compile_time("-a"):
+				m["address"] = "\0";
+				temp = &m["address"];
+				break;
+			}
+
+			is_value = true;
 		}
 	}
 
-	return vec;
+	return m;
 }
 
 const std::vector<std::string> text_operate(std::ifstream& fin)
@@ -61,24 +110,29 @@ const std::vector<std::string> text_operate(std::ifstream& fin)
 
 	while (fin.getline(temp, 300))
 	{
-		item += (std::string)temp += '\n';
-
 		if (temp[0] == '\0')
 		{
 			vec.push_back(item);
 			item = "";
 		}
+
+		item += std::string(temp) += '\n';
+	}
+
+	if (fin.eof())
+	{
+		vec.push_back(item);
 	}
 
 	return vec;
 }
 
-void write_func(const std::string& path, std::string ap__)
+void write_func(const std::vector<std::string>& cmd_vec)
 {
 	std::ofstream fout;
-	if (path != "\0")
+	if (false)
 	{
-		fout.open(path, std::ios::app);
+		//fout.open(path, std::ios::app);
 	}
 	else
 	{
@@ -93,7 +147,7 @@ void write_func(const std::string& path, std::string ap__)
 
 	try
 	{
-		const std::vector<std::string> ap_vec = ap_operate(ap__);
+		const std::map<std::string, std::string> ap_vec = ap_operate(cmd_vec);
 
 		if (!write_operate(std::cout, ap_vec))
 		{
@@ -124,9 +178,9 @@ void read_func(const std::string& path, std::string platform_name)
 	}
 	else
 	{
-		std::string string_text;
+		/*std::string string_text;
 
-		fin >> string_text;
+		fin >> string_text;*/
 
 		fin.open(default_path);
 	}

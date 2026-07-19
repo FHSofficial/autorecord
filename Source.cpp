@@ -7,8 +7,11 @@ enum Mode { write, read, none };
 
 int main(int argc, char* argv[])
 {
-	std::vector<std::string> cmd_vec(3, "\0");	
-	// { autorecord ,operate, account and passward, string path }
+	std::vector<std::string> cmd_vec(argc, "\0");	
+	// write
+	// { autorecord ,operate, account and passward}
+	//					0								
+	// read
 	// { autorecord, operate, platform name, string path}
 	//                  0         1                 2
 
@@ -27,7 +30,7 @@ int main(int argc, char* argv[])
 	switch (mode)
 	{
 	case write:
-		write_func(cmd_vec[2], cmd_vec[1]);
+		write_func(cmd_vec);
 		break;
 
 	case read:
